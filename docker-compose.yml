@@ -1,0 +1,41 @@
+version: "3.7"
+services:
+  database:
+    container_name: db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mysgl
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'mysql'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: 'root'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: 'root'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    expose:
+      # Opens port 3306 on the container
+      - 3306
+    ports:
+      - 3306:3306
+    volumes:
+      - db:/var/lib/mysql
+
+  nest-service:
+    container_name: api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3030
+    command: ["node", "dist/index.js"]
+    environment:
+      - TYPEORM_URL=mysql://root:root@host.docker.internal:3306/mysql
+      - TYPEORM_LOGGING=true
+    depends_on:
+      - database
+
+# Names our volume
+volumes:
+  db:
